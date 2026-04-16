@@ -18,7 +18,7 @@ Flusso MVP:
 
 1. Copia `server/.env.example` in `server/.env`.
 2. Configura almeno:
-   - `POCKETBASE_URL=https://pocketabase.eulab.cloud`
+   - `POCKETBASE_URL=https://pocketbase.eulab.cloud`
    - `POCKETBASE_COLLECTION=tools_ai`
    - `AI_PROVIDER=google`, `openrouter` oppure `mock`
 3. Installa le dipendenze e avvia:

@@ -16,7 +16,7 @@ if (!Number.isFinite(maxUploadMb) || maxUploadMb <= 0) {
 export const config = {
   port,
   maxUploadBytes: Math.floor(maxUploadMb * 1024 * 1024),
-  pocketBaseUrl: (process.env.POCKETBASE_URL ?? "https://pocketabase.eulab.cloud").replace(/\/$/, ""),
+  pocketBaseUrl: (process.env.POCKETBASE_URL ?? "https://pocketbase.eulab.cloud").replace(/\/$/, ""),
   pocketBaseCollection: process.env.POCKETBASE_COLLECTION ?? "tools_ai",
   aiProvider: process.env.AI_PROVIDER ?? "mock",
   googleGenAiApiKey: process.env.GOOGLE_GENAI_API_KEY ?? "",

@@ -31,15 +31,34 @@ final class SavedRecordStore: ObservableObject {
     @Published private(set) var record: ToolAIRecord?
     @Published private(set) var history: [ToolAIRecord] = []
 
+    private var lastRecordData: Data?
+    private var lastHistoryData: Data?
+
     func load() {
-        if let data = AppConfiguration.sharedDefaults.data(forKey: AppConfiguration.lastSavedRecordKey) {
-            record = try? JSONDecoder().decode(ToolAIRecord.self, from: data)
+        lastRecordData = nil
+        lastHistoryData = nil
+        refreshIfNeeded()
+    }
+
+    func refreshIfNeeded() {
+        let nextRecordData = AppConfiguration.sharedDefaults.data(forKey: AppConfiguration.lastSavedRecordKey)
+        let nextHistoryData = AppConfiguration.sharedDefaults.data(forKey: AppConfiguration.savedHistoryKey)
+
+        guard nextRecordData != lastRecordData || nextHistoryData != lastHistoryData else {
+            return
+        }
+
+        lastRecordData = nextRecordData
+        lastHistoryData = nextHistoryData
+
+        if let nextRecordData {
+            record = try? JSONDecoder().decode(ToolAIRecord.self, from: nextRecordData)
         } else {
             record = nil
         }
 
-        if let data = AppConfiguration.sharedDefaults.data(forKey: AppConfiguration.savedHistoryKey),
-           let decoded = try? JSONDecoder().decode([ToolAIRecord].self, from: data) {
+        if let nextHistoryData,
+           let decoded = try? JSONDecoder().decode([ToolAIRecord].self, from: nextHistoryData) {
             history = decoded
         } else {
             history = record.map { [$0] } ?? []
@@ -51,6 +70,7 @@ final class SavedRecordStore: ObservableObject {
 
         if let data = try? JSONEncoder().encode(record) {
             AppConfiguration.sharedDefaults.set(data, forKey: AppConfiguration.lastSavedRecordKey)
+            lastRecordData = data
         }
 
         var nextHistory = history.filter { $0.id != record.id }
@@ -59,6 +79,7 @@ final class SavedRecordStore: ObservableObject {
 
         if let data = try? JSONEncoder().encode(nextHistory) {
             AppConfiguration.sharedDefaults.set(data, forKey: AppConfiguration.savedHistoryKey)
+            lastHistoryData = data
         }
     }
 }

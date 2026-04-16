@@ -94,7 +94,20 @@ struct ContentView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                 if scenePhase == .active {
-                    savedRecordStore.load()
+                    savedRecordStore.refreshIfNeeded()
+                }
+            }
+            .task(id: scenePhase) {
+                guard scenePhase == .active else { return }
+
+                while !Task.isCancelled {
+                    savedRecordStore.refreshIfNeeded()
+
+                    do {
+                        try await Task.sleep(for: .seconds(2))
+                    } catch {
+                        return
+                    }
                 }
             }
         }

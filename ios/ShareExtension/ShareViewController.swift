@@ -47,6 +47,12 @@ final class ShareViewModel: ObservableObject {
     @Published var statusText = "Carica un'immagine dalla condivisione."
     @Published var isSaving = false
 
+    private var sharedFileURL: URL?
+
+    var canDeleteSharedFile: Bool {
+        sharedFileURL?.isFileURL == true
+    }
+
     func loadImage(from context: NSExtensionContext?) async {
         guard let item = context?.inputItems.first as? NSExtensionItem,
               let provider = item.attachments?.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.image.identifier) }) else {
@@ -87,10 +93,30 @@ final class ShareViewModel: ObservableObject {
         isSaving = false
     }
 
+    func deleteSharedFileIfPossible() throws {
+        guard let sharedFileURL, sharedFileURL.isFileURL else {
+            return
+        }
+
+        let startedAccess = sharedFileURL.startAccessingSecurityScopedResource()
+        defer {
+            if startedAccess {
+                sharedFileURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        if FileManager.default.fileExists(atPath: sharedFileURL.path) {
+            try FileManager.default.removeItem(at: sharedFileURL)
+        }
+    }
+
     private func image(from item: NSSecureCoding?) throws -> UIImage {
         if let url = item as? URL, let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+            sharedFileURL = url
             return image
         }
+
+        sharedFileURL = nil
 
         if let image = item as? UIImage {
             return image
@@ -123,6 +149,8 @@ struct ShareRootView: View {
     @ObservedObject var viewModel: ShareViewModel
     let onDone: () -> Void
     let onCancel: () -> Void
+
+    @State private var isShowingCloseConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -160,12 +188,37 @@ struct ShareRootView: View {
                 .disabled(viewModel.previewImage == nil || viewModel.isSaving)
 
                 Button("Chiudi") {
-                    onDone()
+                    isShowingCloseConfirmation = true
                 }
                 .buttonStyle(.bordered)
+                .disabled(viewModel.isSaving)
             }
             .padding()
             .navigationTitle("Save Tool")
+            .confirmationDialog("Chiudi la condivisione?", isPresented: $isShowingCloseConfirmation, titleVisibility: .visible) {
+                if viewModel.canDeleteSharedFile {
+                    Button("Elimina file e chiudi", role: .destructive) {
+                        do {
+                            try viewModel.deleteSharedFileIfPossible()
+                            onDone()
+                        } catch {
+                            viewModel.statusText = error.localizedDescription
+                        }
+                    }
+                }
+
+                Button("Chiudi senza eliminare") {
+                    onDone()
+                }
+
+                Button("Annulla", role: .cancel) {}
+            } message: {
+                if viewModel.canDeleteSharedFile {
+                    Text("Puoi chiudere la share extension oppure eliminare il file locale condiviso prima di chiudere.")
+                } else {
+                    Text("Conferma la chiusura della share extension.")
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annulla", action: onCancel)

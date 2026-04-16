@@ -46,6 +46,7 @@ Prima di buildare aggiorna questi valori nei Build Settings o nel file `project.
 
 L'app principale salva il backend URL in `UserDefaults` condivisi tramite App Group.
 La Share Extension legge la stessa configurazione e invia la foto al backend.
+Il default configurato nell'app e' `https://appsend.eulab.cloud`.
 
 ## Variabili backend supportate
 

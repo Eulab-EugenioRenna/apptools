@@ -4,7 +4,7 @@ enum AppConfiguration {
     static let appGroupIdentifier = "group.com.eulab.AppSendTool"
     static let backendURLKey = "backend_url"
     static let lastSavedRecordKey = "last_saved_record"
-    static let defaultBackendURL = "http://127.0.0.1:8787"
+    static let defaultBackendURL = "https://appsend.eulab.cloud"
 
     static var sharedDefaults: UserDefaults {
         UserDefaults(suiteName: appGroupIdentifier) ?? .standard

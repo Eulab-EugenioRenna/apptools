@@ -10,9 +10,6 @@ struct AppSendToolApp: App {
             ContentView()
                 .environmentObject(settingsStore)
                 .environmentObject(savedRecordStore)
-                .onAppear {
-                    savedRecordStore.load()
-                }
         }
     }
 }

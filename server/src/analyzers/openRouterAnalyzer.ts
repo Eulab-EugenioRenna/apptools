@@ -1,3 +1,4 @@
+import { logInfo, summarizeText } from "../logger.js"
 import { toolAiCreateInputSchema } from "../schemas.js"
 import type { Analyzer, AnalyzerInput, ToolAiCreateInput } from "../types.js"
 import { buildAnalyzerPrompt, extractJsonText } from "./prompt.js"
@@ -50,6 +51,14 @@ export class OpenRouterAnalyzer implements Analyzer {
       headers["X-Title"] = this.appName.trim()
     }
 
+    logInfo("OpenRouter request started", {
+      model: this.model,
+      baseUrl: this.baseUrl,
+      source: input.source,
+      contentType: input.contentType,
+      imageBytesApprox: Math.floor((input.imageBase64.length * 3) / 4)
+    })
+
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: "POST",
       headers,
@@ -89,7 +98,22 @@ export class OpenRouterAnalyzer implements Analyzer {
       throw new Error("OpenRouter returned an empty response")
     }
 
+    logInfo("OpenRouter response received", {
+      model: this.model,
+      textPreview: summarizeText(content)
+    })
+
     const parsed = JSON.parse(extractJsonText(content))
-    return toolAiCreateInputSchema.parse(parsed)
+    const result = toolAiCreateInputSchema.parse(parsed)
+
+    logInfo("OpenRouter response parsed", {
+      name: result.name,
+      category: result.category,
+      link: result.link,
+      tagsCount: result.summary.tags.length,
+      useCasesCount: result.summary.useCases.length
+    })
+
+    return result
   }
 }

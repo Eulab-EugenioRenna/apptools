@@ -1,3 +1,4 @@
+import { logInfo } from "./logger.js"
 import { toolAiRecordSchema } from "./schemas.js"
 import type { ToolAiCreateInput, ToolAiRecord } from "./types.js"
 
@@ -8,6 +9,15 @@ export class PocketBaseClient {
   ) {}
 
   async createToolRecord(input: ToolAiCreateInput): Promise<ToolAiRecord> {
+    logInfo("PocketBase create started", {
+      baseUrl: this.baseUrl,
+      collection: this.collection,
+      name: input.name,
+      category: input.category,
+      source: input.source,
+      link: input.link
+    })
+
     const response = await fetch(`${this.baseUrl}/api/collections/${this.collection}/records`, {
       method: "POST",
       headers: {
@@ -29,6 +39,15 @@ export class PocketBaseClient {
     }
 
     const data = await response.json()
-    return toolAiRecordSchema.parse(data)
+    const record = toolAiRecordSchema.parse(data)
+
+    logInfo("PocketBase create completed", {
+      collection: record.collectionName,
+      id: record.id,
+      name: record.name,
+      created: record.created
+    })
+
+    return record
   }
 }

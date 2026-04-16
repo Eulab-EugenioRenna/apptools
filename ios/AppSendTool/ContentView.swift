@@ -1,8 +1,12 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 struct ContentView: View {
     @EnvironmentObject private var settingsStore: SettingsStore
     @EnvironmentObject private var savedRecordStore: SavedRecordStore
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var healthMessage = ""
     @State private var isCheckingHealth = false
@@ -27,34 +31,86 @@ struct ContentView: View {
 
                     if !healthMessage.isEmpty {
                         Text(healthMessage)
-                            .font(.footnote)
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
 
                 Section("Ultimo record salvato") {
                     if let record = savedRecordStore.record {
-                        LabeledContent("Nome", value: record.name)
-                        LabeledContent("Categoria", value: record.category)
-                        LabeledContent("Link", value: record.link.isEmpty ? "-" : record.link)
-                        LabeledContent("Source", value: record.source)
-                        LabeledContent("PocketBase ID", value: record.id)
+                        compactField("Nome", record.name)
+                        compactField("Categoria", record.category)
+                        compactField("Link", record.link.isEmpty ? "-" : record.link)
+                        compactField("Source", record.source)
+                        compactField("PocketBase ID", record.id)
 
                         if !record.summary.tags.isEmpty {
                             Text(record.summary.tags.joined(separator: ", "))
-                                .font(.footnote)
+                                .font(.caption)
                                 .foregroundStyle(.secondary)
+                                .lineLimit(2)
                         }
 
                         Text(record.summary.summary)
-                            .font(.footnote)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(4)
                     } else {
                         Text("Nessun record ancora salvato dalla Share Extension.")
+                            .font(.caption)
                             .foregroundStyle(.secondary)
+                    }
+                }
+
+                Section("Cronologia") {
+                    if savedRecordStore.history.isEmpty {
+                        Text("Nessun record salvato.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(savedRecordStore.history) { record in
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(record.name)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                Text(record.category)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                if !record.link.isEmpty {
+                                    Text(record.link)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                }
+                            }
+                            .padding(.vertical, 1)
+                        }
                     }
                 }
             }
             .navigationTitle("AppSendTool")
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                savedRecordStore.load()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                if scenePhase == .active {
+                    savedRecordStore.load()
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func compactField(_ title: String, _ value: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 8)
+            Text(value)
+                .font(.caption)
+                .multilineTextAlignment(.trailing)
+                .lineLimit(2)
         }
     }
 

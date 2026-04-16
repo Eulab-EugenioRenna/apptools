@@ -68,7 +68,7 @@ export class OpenRouterAnalyzer implements Analyzer {
         messages: [
           {
             role: "system",
-            content: "You extract structured tool metadata from screenshots and ads. Output JSON only."
+            content: "Estrai metadati strutturati di tool da screenshot e pubblicita'. Restituisci solo JSON valido e usa esclusivamente l'italiano per tutti i campi testuali descrittivi."
           },
           {
             role: "user",

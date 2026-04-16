@@ -20,13 +20,13 @@ export class MockAnalyzer implements Analyzer {
       summary: {
         apiAvailable: true,
         category: "RAG",
-        concepts: ["LLM", "RAG", "Knowledge Base"],
+        concepts: ["LLM", "RAG", "base di conoscenza"],
         derivedLink: "https://example.com",
         name: "Mock SaaS",
         normalizedName: "Mock SaaS",
-        summary: "Mock analyzer result used because no live AI provider is configured.",
-        tags: ["Mock", "RAG", "AI"],
-        useCases: ["Manual testing", "Pipeline verification"]
+        summary: "Risultato del mock analyzer usato perche' non e' configurato un provider AI reale.",
+        tags: ["mock", "RAG", "AI"],
+        useCases: ["test manuale", "verifica della pipeline"]
       }
     }
   }
